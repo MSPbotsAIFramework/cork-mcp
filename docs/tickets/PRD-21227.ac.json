@@ -1,0 +1,87 @@
+[
+  {
+    "id": "TC1",
+    "ac": "AC1",
+    "text": "Given a mocked Cork GET /clients response, when cork_get_clients is called, then each client's warranty_status and latest_cyber_score are returned unchanged from the mock payload",
+    "type": "auto",
+    "tests": ["tests/test_clients.py::test_get_clients_returns_warranty_status_and_score"]
+  },
+  {
+    "id": "TC2",
+    "ac": "AC1",
+    "text": "Given a mocked Cork GET /warranties?client_uuid=... response, when cork_get_warranties is called with that client_uuid, then the client's active warranty package(s) and coverage dates are returned unchanged from the mock",
+    "type": "auto",
+    "tests": ["tests/test_warranty.py::test_get_warranties_returns_coverage_dates"]
+  },
+  {
+    "id": "TC3",
+    "ac": "AC1",
+    "text": "Given a real Cork sandbox/trial API key and a known test client, when cork_get_clients and cork_get_warranties are called for that client, then the returned warranty/coverage status matches what the Cork portal UI shows for the same client",
+    "type": "manual",
+    "steps": [
+      "Obtain a Cork sandbox or trial API key with at least one test client configured",
+      "Log into the Cork portal and note the test client's warranty/coverage status as shown in the UI",
+      "Call cork_get_clients and cork_get_warranties against the live Cork API with that key and the test client's uuid",
+      "Compare the tool output to the portal UI"
+    ],
+    "expect": "The warranty/coverage status, package name, and coverage dates returned by the tools match the Cork portal UI for the same client",
+    "result": "blocked",
+    "evidence": "needs a real vendor account -- no Cork sandbox/trial key is available to the dev leg; not a blocker for 6b per vendor-mcp-track.md 3 'completion criteria'"
+  },
+  {
+    "id": "TC4",
+    "ac": "AC2",
+    "text": "Given a mocked Cork GET /clients/{client_uuid}/score-history response, when cork_get_client_score_history is called with that client_uuid, then the entries are returned in the same newest-first order the mock provided, unreordered",
+    "type": "auto",
+    "tests": ["tests/test_clients.py::test_get_client_score_history_preserves_order"]
+  },
+  {
+    "id": "TC5",
+    "ac": "AC3",
+    "text": "Given a mocked Cork GET /compliance/client/{client_uuid}/events response, when cork_get_compliance_events is called with that client_uuid, then each event's event_type, at_risk, and resolved fields are returned unchanged from the mock",
+    "type": "auto",
+    "tests": ["tests/test_compliance.py::test_get_compliance_events_returns_event_fields"]
+  },
+  {
+    "id": "TC6",
+    "ac": "AC4",
+    "text": "Given a mocked Cork GET /vulnerabilities/software response, when cork_get_software_vulnerabilities is called, then each CVE's cvss_score, epss_score, and known_exploited flag are returned unchanged from the mock",
+    "type": "auto",
+    "tests": ["tests/test_vulnerabilities.py::test_get_software_vulnerabilities_returns_cve_fields"]
+  },
+  {
+    "id": "TC7",
+    "ac": "AC5",
+    "text": "Given the mocked Cork API returns HTTP 401 for any endpoint, when any of the 6 tools is called, then it returns a structured {error: {code: unauthorized}} response and raises no exception",
+    "type": "auto",
+    "tests": ["tests/test_auth.py::test_upstream_401_maps_to_unauthorized_for_every_tool"]
+  },
+  {
+    "id": "TC8",
+    "ac": "AC5",
+    "text": "Given the X-Cork-Api-Key header is absent entirely, when any of the 6 tools is called, then it returns {error: {code: not_configured}} without attempting an outbound call to Cork",
+    "type": "auto",
+    "tests": ["tests/test_auth.py::test_missing_credential_header_short_circuits_every_tool"]
+  },
+  {
+    "id": "TC9",
+    "ac": "AC6",
+    "text": "Given no client_uuid argument is supplied, when cork_get_warranties, cork_get_client_score_history, or cork_get_compliance_events is called, then each returns {error: {code: invalid_argument}} and the Cork API mock is never called",
+    "type": "auto",
+    "tests": ["tests/test_auth.py::test_missing_client_uuid_short_circuits_client_scoped_tools"]
+  },
+  {
+    "id": "TC10",
+    "ac": "AC7",
+    "text": "Given a mocked empty-array response from /warranties, /compliance/client/{id}/events, or /vulnerabilities/software, when the corresponding tool is called, then it returns an empty list, not an error object",
+    "type": "auto",
+    "tests": ["tests/test_warranty.py::test_empty_warranty_list_is_not_an_error", "tests/test_compliance.py::test_empty_events_list_is_not_an_error", "tests/test_vulnerabilities.py::test_empty_vulnerability_list_is_not_an_error"]
+  },
+  {
+    "id": "TC11",
+    "ac": "AC8",
+    "text": "Given page_size=500 is requested, when any list-returning tool is called, then the value is clamped to the documented cap (200) before the Cork call is made, and a mocked has_more: true is surfaced unchanged in the tool output",
+    "type": "auto",
+    "tests": ["tests/test_clients.py::test_page_size_is_clamped_and_has_more_is_surfaced"]
+  }
+]
